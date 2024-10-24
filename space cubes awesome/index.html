@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Abstract Background</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #111; /* Dark background */
+        }
+
+        canvas {
+            display: block; /* Ensure canvas covers the full screen */
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg"></canvas>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.querySelector('#bg'),
+            antialias: true
+        });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        // Camera position
+        camera.position.setZ(40);
+
+        // Orbit controls for interactive camera movement
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        
+        // Ambient lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        // Point light for dynamic effects
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(20, 20, 20);
+        scene.add(pointLight);
+
+        // Dynamic cubes
+        const cubeGeometry = new THREE.BoxGeometry(5, 5, 5);
+        
+        const material1 = new THREE.MeshStandardMaterial({ color: 0xff0051, metalness: 0.5, roughness: 0.5 });
+        const material2 = new THREE.MeshStandardMaterial({ color: 0x0051ff, metalness: 0.3, roughness: 0.6 });
+        const material3 = new THREE.MeshStandardMaterial({ color: 0x00ff51, metalness: 0.7, roughness: 0.4 });
+
+        const cube1 = new THREE.Mesh(cubeGeometry, material1);
+        const cube2 = new THREE.Mesh(cubeGeometry, material2);
+        const cube3 = new THREE.Mesh(cubeGeometry, material3);
+
+        cube1.position.set(-10, 0, 0);
+        cube2.position.set(10, 0, 0);
+        cube3.position.set(0, 10, -15);
+
+        scene.add(cube1, cube2, cube3);
+
+        // Particles for floating glowing effect
+        const particleGeometry = new THREE.SphereGeometry(0.1, 24, 24);
+        const particleMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const particles = [];
+
+        for (let i = 0; i < 200; i++) {
+            const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+            
+            // Random position for each particle
+            const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
+            particle.position.set(x, y, z);
+            
+            scene.add(particle);
+            particles.push(particle);
+        }
+
+        // Animate the scene
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate cubes
+            cube1.rotation.x += 0.01;
+            cube1.rotation.y += 0.01;
+
+            cube2.rotation.x += 0.005;
+            cube2.rotation.y += 0.01;
+
+            cube3.rotation.x += 0.01;
+            cube3.rotation.y += 0.02;
+
+            // Slowly move particles
+            particles.forEach(p => {
+                p.position.y += 0.02;
+                if (p.position.y > 50) p.position.y = -50; // Reset if it goes too high
+            });
+
+            // Update controls and render scene
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+
+        animate();
+    </script>
+</body>
+</html>
